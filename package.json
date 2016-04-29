@@ -1,0 +1,22 @@
+{
+  "name": "trello-sheet",
+  "version": "1.0.0",
+  "description": "plug your spreadsheet into a trelloboard ✨",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "trello",
+    "cards",
+    "csv",
+    "spreadsheet"
+  ],
+  "author": "Irina Shestak",
+  "license": "ISC",
+  "devDependencies": {
+    "node-trello": "^1.1.2",
+    "through2": "^2.0.1",
+    "yargs": "^4.6.0"
+  }
+}
