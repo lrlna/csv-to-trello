@@ -15,6 +15,7 @@
   "author": "Irina Shestak",
   "license": "ISC",
   "devDependencies": {
+    "csv-parse": "^1.1.0",
     "node-trello": "^1.1.2",
     "through2": "^2.0.1",
     "yargs": "^4.6.0"
