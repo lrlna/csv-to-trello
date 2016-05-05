@@ -26,7 +26,7 @@ var readable = fs.createReadStream(file)
 
 
 // ok, let's do some trello things;
-var idBoard, idList, boardURL, newCard
+var idBoard, idList, boardURL, newCard, idCard
 
 function createTrello (chunk, enc, callback) {
   // thing we need to create a list, and then cards
@@ -35,20 +35,23 @@ function createTrello (chunk, enc, callback) {
   var trello = new Trello(creds.key, creds.token)
 
   // let's create a new board
-  //trello.post('/1/boards', {name: 'test12'}, function (err, data) {
-  //  if (err) throw err
-  //  idBoard = data.id
-  //  boardURL = data.url
-  //})
+  trello.post('/1/boards', {name: 'test12'}, function (err, data) {
+    if (err) throw err
+    idBoard = data.id
+    boardURL = data.url
+    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+  })
 
   // let's create a new list
-  //trello.post('/1/lists', {name: 'test213', idBoard: idBoard}, function (err, data) {
-  //  if (err) throw err
-  //  idList = data.id
-  //})
+  trello.post('/1/lists', {name: 'test213', idBoard: idBoard}, function (err, data) {
+    if (err) throw err
+    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+    idList = data.id
+  })
 
   // let's create some cards based on 
-  Object.keys.forEach(chunk, function (keys) {
+  Object.keys.forEach(chunk, function (key) {
+
     newCard = {
       name: chunk['Company'],
       //idList: idList,
@@ -58,12 +61,20 @@ function createTrello (chunk, enc, callback) {
       ].join("\b")
       pos: checkIfAlum(chunk['Alum?'])
     }
+
+    trello.post('/1/cards', newCard, function (err, data) {
+      if (err) throw err
+
+      idCard = data.id
+      console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+
+    })
   })
 
-  //trello.post('/1/cards', newCard, function (err, data) {
+}
 
-  })
-  
+function creationCallback (err, data) {
+
 }
 
 function getCreds () {
