@@ -9,7 +9,7 @@ var file = process.argv[2]
 var stream = csv({columns: true})
 var readable = fs.createReadStream(file)
   .pipe(stream)
-  .pipe(through2.obj(transform))
+  .pipe(through2.obj(createCard))
   .on('data', function (data) {
     console.log(data + "\n")
   })
@@ -22,17 +22,23 @@ var readable = fs.createReadStream(file)
     console.log("end of csv")
   })
 
-function transform (chunk, enc, callback) {
-  var row = []
-  Object.keys(chunk).forEach(function (key) {
-    !!chunk[key] ? row.push(chunk[key]) : continue 
-  })
 
-  // create item from chunk's keys; skip if chunk[key] is empty
-  //var item = {
-  //}
+function createCard (chunk, enc, callback) {
+  var boardId
+
+  var creds = getCreds()
+  var trello = new Trello(creds.key, creds.token)
+
+  trello.post('/1/boards', {name: 'CascadiaFest Sponsors'}, function (err, data) {
+    if (err) throw (err)
+
+    console.log(data)
+  })
 }
 
-function createCard (item) {
-  
+function getCreds () {
+  var credsFile = path.join(__dirname, "./keys.json")
+  var file = fs.readFileSync(credsFile) 
+
+  return JSON.parse(file)
 }
