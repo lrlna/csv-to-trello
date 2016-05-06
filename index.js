@@ -8,6 +8,18 @@ var file = process.argv[2]
 
 var stream = csv({columns: true})
 
+// ok, let's do some trello things;
+var idBoard, idList, boardURL, newCard, idCard, comments
+
+// thing we need to create a list, and then cards
+
+var creds = getCreds()
+var trello = new Trello(creds.key, creds.token)
+
+createBoard()
+createList()
+
+
 // create a readable file stream
 var readable = fs.createReadStream(file)
   .pipe(stream)
@@ -24,35 +36,30 @@ var readable = fs.createReadStream(file)
     console.log("end of csv")
   })
 
-
-// ok, let's do some trello things;
-var idBoard, idList, boardURL, newCard, idCard, comments
-
-function createTrello (chunk, enc, callback) {
-  // thing we need to create a list, and then cards
-
-  var creds = getCreds()
-  var trello = new Trello(creds.key, creds.token)
-
+function createBoard () {
   // let's create a new board
-  trello.post('/1/boards', {name: 'test12'}, function (err, data) {
-    if (err) throw err
+  trello.post('/1/boards', {name: 'Cascadia Sponsorship'}, function (err, data) {
+    if (err) console.log(err)
     idBoard = data.id
     boardURL = data.url
     console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
   })
+}
 
+function createList () {
   // let's create a new list
-  trello.post('/1/lists', {name: 'test213', idBoard: idBoard}, function (err, data) {
-    if (err) throw err
+  trello.post('/1/lists', {name: 'Backlog', idBoard: idBoard}, function (err, data) {
+    if (err) console.log(err)
     console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
     idList = data.id
   })
+}
 
-  // let's create some cards based on 
+function createTrello (chunk, enc, callback) {
+  // let's create some cards based on chunk
   newCard = {
     name: chunk['Company'],
-    //idList: idList,
+    idList: idList,
     pos: checkIfAlum(chunk['Alum?']),
     desc: []
   }
@@ -69,8 +76,10 @@ function createTrello (chunk, enc, callback) {
     newCard.desc.push(`**${key}** ${chunk[key]}`)
   })
 
+  newCard.desc.join("\n")
+
   trello.post('/1/cards', newCard, function (err, data) {
-    if (err) throw err
+    if (err) console.log(err)
 
     idCard = data.id
 
@@ -79,8 +88,8 @@ function createTrello (chunk, enc, callback) {
   })
 
   if (comments.text) {
-    trello.post(`/1/cards/${idCard}/action/comments`, comments, , function (err, data) {
-      if (err) throw err
+    trello.post(`/1/cards/${idCard}/action/comments`, comments, function (err, data) {
+      if (err) console.log(err)
 
       console.log(data)
       console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
