@@ -26,7 +26,7 @@ var readable = fs.createReadStream(file)
 
 
 // ok, let's do some trello things;
-var idBoard, idList, boardURL, newCard, idCard
+var idBoard, idList, boardURL, newCard, idCard, comments
 
 function createTrello (chunk, enc, callback) {
   // thing we need to create a list, and then cards
@@ -50,30 +50,44 @@ function createTrello (chunk, enc, callback) {
   })
 
   // let's create some cards based on 
-  Object.keys.forEach(chunk, function (key) {
+  newCard = {
+    name: chunk['Company'],
+    //idList: idList,
+    pos: checkIfAlum(chunk['Alum?']),
+    desc: []
+  }
+  comments = {}
 
-    newCard = {
-      name: chunk['Company'],
-      //idList: idList,
-      desc: [
-        `**key**   ${chunk['Company']}`,
-        `**`
-      ].join("\b")
-      pos: checkIfAlum(chunk['Alum?'])
+  Object.keys(chunk).forEach(function (key) {
+    // don't want these in desc
+    if (!chunk[key] || key === 'Alum?') return
+    // create a comment separate from the card
+    if (key === 'Notes' && !!chunk[key]) {
+      comments.text= chunk[key]
+      return
     }
-
-    trello.post('/1/cards', newCard, function (err, data) {
-      if (err) throw err
-
-      idCard = data.id
-      console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
-
-    })
+    newCard.desc.push(`**${key}** ${chunk[key]}`)
   })
 
-}
+  trello.post('/1/cards', newCard, function (err, data) {
+    if (err) throw err
 
-function creationCallback (err, data) {
+    idCard = data.id
+
+    console.log(data)
+    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+  })
+
+  if (comments.text) {
+    trello.post(`/1/cards/${idCard}/action/comments`, comments, , function (err, data) {
+      if (err) throw err
+
+      console.log(data)
+      console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+    })
+  }
+
+  callback()
 
 }
 
