@@ -8,14 +8,13 @@ var file = process.argv[2]
 
 var stream = csv({columns: true})
 
-// ok, let's do some trello things;
+// ok, let's add some global trello variablesss
 var idBoard, idList, boardURL, newCard, idCard, comments
-
-// thing we need to create a list, and then cards
 
 var creds = getCreds()
 var trello = new Trello(creds.key, creds.token)
 
+// thing we need to create a list, and then cards
 createBoard()
 createList()
 
@@ -76,7 +75,7 @@ function createTrello (chunk, enc, callback) {
     newCard.desc.push(`**${key}** ${chunk[key]}`)
   })
 
-  newCard.desc.join("\n")
+  if (!!newCard.desc) newCard.desc.join("\n")
 
   trello.post('/1/cards', newCard, function (err, data) {
     if (err) console.log(err)
