@@ -79,17 +79,17 @@ function createTrello (chunk, enc, done) {
       comments.text= chunk[key]
       return
     }
-    newCard.desc.push(`**${key}** ${chunk[key]}`)
+    newCard.desc.push(`**${key}** ${chunk[key]}\n`)
   })
 
   // join the array with breaks, or if just one item, convert to string; a lil' messy
-  newCard.desc = newCard.desc > 1 ? newCard.desc.join("\r\n") : newCard.desc.toString()
+  newCard.desc = newCard.desc > 1 ? newCard.desc.join(" ") : newCard.desc.toString()
 
   createCard (function (card) {
-    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+    console.log(`${card.name} successfully created. Check ${card.url} for awesome details`)
     if (comments.text) {
       createComment (function (commentPost) {
-        console.log(`${data.type} successfully created`)
+        console.log(`${commentPost.type} successfully created`)
         done()
       })
     } else {
