@@ -44,7 +44,7 @@ var createReadStream = function () {
 
 function createBoard (done) {
   // let's create a new board
-  trello.post('/1/boards', {name: 'Cascadia Sponsorship'}, function (err, data) {
+  trello.post('/1/boards', {name: 'Cascadia Sponsorship Board'}, function (err, data) {
     if (err) console.log(err)
     idBoard = data.id
     boardURL = data.url
@@ -83,17 +83,16 @@ function createTrello (chunk, enc, done) {
   })
 
   // join the array with breaks, or if just one item, convert to string; a lil' messy
-  newCard.desc = newCard.desc > 1 ? newCard.desc.join("\n") : newCard.desc.toString()
-  console.log(newCard.desc)
+  newCard.desc = newCard.desc > 1 ? newCard.desc.join("\r\n") : newCard.desc.toString()
 
   createCard (function (card) {
-    if (card && comments.text) {
+    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+    if (comments.text) {
       createComment (function (commentPost) {
-        console.log(commentPost)
+        console.log(`${data.type} successfully created`)
         done()
       })
     } else {
-      console.log(card)
       done()
     }
   })
@@ -107,10 +106,8 @@ function getCreds () {
 }
 
 function createComment (done) {
-  trello.post(`/1/cards/${idCard}/action/comments`, comments, function (err, data) {
+  trello.post(`/1/cards/${idCard}/actions/comments`, comments, function (err, data) {
     if (err) console.log(err)
-    console.log(data)
-    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
     done (data)
   })
 }
@@ -119,8 +116,6 @@ function createCard (done) {
   trello.post('/1/cards', newCard, function (err, data) {
     if (err) throw (err)
     idCard = data.id
-    console.log(data)
-    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
     done(data)
   })
 }
