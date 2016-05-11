@@ -15,9 +15,6 @@ var creds = getCreds()
 var trello = new Trello(creds.key, creds.token)
 
 // thing we need to create a list, and then cards
-createBoard()
-createList()
-
 
 // create a readable file stream
 var readable = fs.createReadStream(file)
@@ -35,26 +32,28 @@ var readable = fs.createReadStream(file)
     console.log("end of csv")
   })
 
-function createBoard () {
+function createBoard (done) {
   // let's create a new board
   trello.post('/1/boards', {name: 'Cascadia Sponsorship'}, function (err, data) {
     if (err) console.log(err)
     idBoard = data.id
     boardURL = data.url
     console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+    done(data)
   })
 }
 
-function createList () {
+function createList (done) {
   // let's create a new list
   trello.post('/1/lists', {name: 'Backlog', idBoard: idBoard}, function (err, data) {
-    if (err) console.log(err)
+    if (err) done (err)
     console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
     idList = data.id
+    done (data)
   })
 }
 
-function createTrello (chunk, enc, callback) {
+function createTrello (chunk, enc, done) {
   // let's create some cards based on chunk
   newCard = {
     name: chunk['Company'],
@@ -75,27 +74,22 @@ function createTrello (chunk, enc, callback) {
     newCard.desc.push(`**${key}** ${chunk[key]}`)
   })
 
-  if (!!newCard.desc) newCard.desc.join("\n")
+  // join the array with breaks, or if just one item, convert to string; a lil' messy
+  newCard.desc = newCard.desc > 1 ? newCard.desc.join("\n") : newCard.desc.toString()
+  console.log(newCard.desc)
 
-  trello.post('/1/cards', newCard, function (err, data) {
-    if (err) console.log(err)
-
-    idCard = data.id
-
-    console.log(data)
-    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+  createCard (function (card) {
+    if (card && comments.text) {
+      createComment (function (commentPost) {
+        console.log(commentPost)
+        done()
+      })
+    } else {
+      console.log(card)
+      done()
+    }
   })
 
-  if (comments.text) {
-    trello.post(`/1/cards/${idCard}/action/comments`, comments, function (err, data) {
-      if (err) console.log(err)
-
-      console.log(data)
-      console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
-    })
-  }
-
-  callback()
 
 }
 
@@ -104,6 +98,28 @@ function getCreds () {
   var file = fs.readFileSync(credsFile)
 
   return JSON.parse(file)
+}
+
+function createComment (done) {
+  trello.post(`/1/cards/${idCard}/action/comments`, comments, function (err, data) {
+    if (err) console.log(err)
+
+    console.log(data)
+    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+    done (data)
+  })
+}
+
+function createCard (done) {
+  trello.post('/1/cards', newCard, function (err, data) {
+    if (err) throw (err)
+
+    idCard = data.id
+
+    console.log(data)
+    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
+    done(data)
+  })
 }
 
 function checkIfAlum (alum) {
