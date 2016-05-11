@@ -14,23 +14,33 @@ var idBoard, idList, boardURL, newCard, idCard, comments
 var creds = getCreds()
 var trello = new Trello(creds.key, creds.token)
 
+createBoard(function (board) {
+  if (board) console.log(`${board.name} successfully created. Check ${board.url} for awesome details`)
+  createList(function (list) {
+    if (list) console.log(`${list.name} successfully created. Check ${list.url} for awesome details`)
+    createReadStream()
+  })
+})
+
 // thing we need to create a list, and then cards
 
 // create a readable file stream
-var readable = fs.createReadStream(file)
-  .pipe(stream)
-  .pipe(through2.obj(createTrello))
-  .on('data', function (data) {
-    console.log(data + "\n")
-  })
-  .on('error', function (err) {
-    console.log("There is an error reading the csv file")
-    console.log(err)
-    console.log(1)
-  })
-  .on('end', function() {
-    console.log("end of csv")
-  })
+var createReadStream = function () {
+  var readable = fs.createReadStream(file)
+    .pipe(stream)
+    .pipe(through2.obj(createTrello))
+    .on('data', function (data) {
+      console.log(data + "\n")
+    })
+    .on('error', function (err) {
+      console.log("There is an error reading the csv file")
+      console.log(err)
+      console.log(1)
+    })
+    .on('end', function() {
+      console.log("end of csv")
+    })
+}
 
 function createBoard (done) {
   // let's create a new board
@@ -38,7 +48,6 @@ function createBoard (done) {
     if (err) console.log(err)
     idBoard = data.id
     boardURL = data.url
-    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
     done(data)
   })
 }
@@ -47,7 +56,6 @@ function createList (done) {
   // let's create a new list
   trello.post('/1/lists', {name: 'Backlog', idBoard: idBoard}, function (err, data) {
     if (err) done (err)
-    console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
     idList = data.id
     done (data)
   })
@@ -89,8 +97,6 @@ function createTrello (chunk, enc, done) {
       done()
     }
   })
-
-
 }
 
 function getCreds () {
@@ -103,7 +109,6 @@ function getCreds () {
 function createComment (done) {
   trello.post(`/1/cards/${idCard}/action/comments`, comments, function (err, data) {
     if (err) console.log(err)
-
     console.log(data)
     console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
     done (data)
@@ -113,9 +118,7 @@ function createComment (done) {
 function createCard (done) {
   trello.post('/1/cards', newCard, function (err, data) {
     if (err) throw (err)
-
     idCard = data.id
-
     console.log(data)
     console.log(`${data.name} successfully created. Check ${data.url} for awesome details`)
     done(data)
